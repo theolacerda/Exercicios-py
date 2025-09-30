@@ -1,2 +1,2 @@
-i = int input( i=39;  i<=1024; i+=1)
-
+for i in range(39, 1025):  
+    print(i)  
