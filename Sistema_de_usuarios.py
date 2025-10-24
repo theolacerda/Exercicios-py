@@ -21,6 +21,7 @@ def salvar_usuarios(usuarios):
 
 usuarios = carregar_usuarios()
 
+pedidos_cliente = []
 pedidos_admin = []
 
 voltar = 'trocar de usuario'
@@ -36,8 +37,21 @@ while voltar != 'sair':
                 break
         
         if not tipo_usuario:
-            print('Usuário não cadastrado. Acesso negado.')
-            print('Sistema encerrado.')
+            resp = input('Usuário não cadastrado. Deseja cadastrar? ("sim" ou "não"): ').lower()
+            if resp == 'sim':
+                resp_cliente = input('Você é um cliente interessado em entrar no nosso sistema? ("sim" ou "não"): ').lower()
+                
+                if resp_cliente == 'sim':
+                    print('\nSolicitar novo Cliente:')
+                    novo_nome = input('Informe seu nome Cliente: ')
+                    nova_senha = input('Informe a senha desejada: ')
+                    pedidos_cliente.append({'nome': novo_nome, 'senha': nova_senha})
+                    print(f'Pedido de criação de cliente "{novo_nome}" enviado para aprovação do Líder.')
+                else:
+                    print('Por favor, entre em contato com o administrador do sistema para criar uma conta.')
+
+            else:
+                print('Sistema encerrado.')
             break
 
         tentativas = 9
@@ -54,7 +68,6 @@ while voltar != 'sair':
                     tentar = input('Deseja tentar novamente? ("sim" ou "não"): ').lower()
                     if tentar != 'sim':
                         print('Acesso cancelado.')
-                        tentativas = 0
                         break
                 else:
                     print('Número máximo de tentativas atingido. Acesso negado.')
@@ -73,7 +86,7 @@ while voltar != 'sair':
                 '2 - Ver usuários\n'
                 '3 - Ver funcionários\n'
                 '4 - Cadastrar novos usuários\n'
-                '5 - Analisar pedidos de novos Admins\n'
+                '5 - Analisar pedidos de novos Colaboradores\n'
                 '6 - Remover usuários do sistema\n'
                 '7 - Sair do sistema\n'
                 'Escolha uma opção: '
@@ -118,13 +131,31 @@ while voltar != 'sair':
                     salvar_usuarios(usuarios)
 
             elif manutencao == '5':
+                if not pedidos_cliente:
+                    print('Nenhum pedido de novo cliente pendente.')
+                else:
+                    print('\nPedidos de novos clientes:')
+                    for i, pedido in enumerate(pedidos_cliente, 1):
+                        print(f'{i}. Nome: {pedido["nome"]}, Senha: {pedido["senha"]}')
+                    escolha = input('Deseja aprovar algum pedido de cliente? (s/n): ').lower()
+                    if escolha == 's':
+                        indice = int(input('Informe o número do pedido para aprovar: ')) - 1
+                        if 0 <= indice < len(pedidos_cliente):
+                            pedido = pedidos_cliente.pop(indice)
+                            empresa = input(f'Informe a empresa do cliente "{pedido["nome"]}": ')
+                            usuarios['Cliente'][pedido['nome']] = {'senha': pedido['senha'], 'empresa': empresa}
+                            print(f'Cliente "{pedido["nome"]}" aprovado e cadastrado com sucesso!')
+                            salvar_usuarios(usuarios)
+                        else:
+                            print('Número de pedido inválido.')
+
                 if not pedidos_admin:
                     print('Nenhum pedido de novo administrador pendente.')
                 else:
-                    print('\nPedidos pendentes:')
+                    print('\nPedidos de novos administradores:')
                     for i, pedido in enumerate(pedidos_admin, 1):
                         print(f'{i}. Usuário: {pedido["nome"]}, Senha: {pedido["senha"]}')
-                    escolha = input('Deseja aprovar algum pedido? (s/n): ').lower()
+                    escolha = input('Deseja aprovar algum pedido de admin? (s/n): ').lower()
                     if escolha == 's':
                         indice = int(input('Informe o número do pedido para aprovar: ')) - 1
                         if 0 <= indice < len(pedidos_admin):
@@ -151,99 +182,7 @@ while voltar != 'sair':
 
             elif manutencao == '7':
                 print('Saindo do sistema administrativo...')
-                voltar = input('\nDeseja "trocar de usuario" ou "sair"?: ')
-                continue
-
-        elif tipo_usuario == 'Admin':
-            print(f'\nOlá {usuario}, seja bem-vindo ao sistema.')
-            manutencao = input(
-                '1 - Manutenção do sistema\n'
-                '2 - Ver usuários\n'
-                '3 - Ver funcionários\n'
-                '4 - Cadastrar novos usuários\n'
-                '5 - Solicitar novo Admin\n'
-                '6 - Sair do sistema\n'
-                'Escolha uma opção: '
-            )
-
-            if manutencao == '1':
-                print('Manutenção do sistema selecionada.')
-
-            elif manutencao == '2':
-                print('Lista completa de usuários:')
-                for tipo, lista in usuarios.items():
-                    print(f'\n{tipo}s:')
-                    for nome, info in lista.items():
-                        if tipo == 'Cliente':
-                            empresa = info.get('empresa', 'N/A')
-                            print(f'  - {nome} (Empresa: {empresa})')
-                        else:
-                            print(f'  - {nome}')
-
-            elif manutencao == '3':
-                print('Lista de funcionários:')
-                print(", ".join(usuarios['Funcionario'].keys()))
-
-            elif manutencao == '4':
-                print('Cadastrar novo usuário:')
-                novo_tipo = input('Informe o tipo de usuário (Cliente / Funcionario): ').capitalize()
-                if novo_tipo not in usuarios:
-                    print('Tipo inválido!')
-                else:
-                    novo_nome = input(f'Informe o nome do novo {novo_tipo}: ')
-                    if novo_nome in usuarios[novo_tipo]:
-                        print(f'Usuário "{novo_nome}" já existe! Escolha outro nome.')
-                        continue
-                    nova_senha = input(f'Informe a senha do novo {novo_tipo}: ')
-                    if novo_tipo == 'Cliente':
-                        empresa = input('Informe o nome da empresa do cliente: ')
-                        usuarios[novo_tipo][novo_nome] = {'senha': nova_senha, 'empresa': empresa}
-                        print(f'Cliente "{novo_nome}" cadastrado com sucesso (Empresa: {empresa}).')
-                    else:
-                        usuarios[novo_tipo][novo_nome] = {'senha': nova_senha}
-                        print(f'{novo_tipo} "{novo_nome}" cadastrado com sucesso!')
-                    salvar_usuarios(usuarios)
-
-            elif manutencao == '5':
-                print('\nSolicitar novo administrador:')
-                novo_nome = input('Informe o nome do novo Admin: ')
-                nova_senha = input('Informe a senha do novo Admin: ')
-                pedidos_admin.append({'nome': novo_nome, 'senha': nova_senha})
-                print(f'Pedido de criação do administrador "{novo_nome}" enviado para aprovação do Líder.')
-
-            elif manutencao == '6':
-                print('Saindo do sistema administrativo...')
-                voltar = input('\nDeseja "trocar de usuario" ou "sair"?: ')
-                continue
-
-        elif tipo_usuario == 'Funcionario':
-            print(f'\nOlá {usuario}, bem-vindo ao sistema de funcionários.')
-            funcoes = input('1 - Ver tarefas\n2 - Ver agenda\n3 - Sair do sistema\nEscolha uma opção: ')
-            if funcoes == '1':
-                print('Suas tarefas: organizar relatórios, revisar planilhas e enviar status diário.')
-            elif funcoes == '2':
-                print('Agenda do dia: Reunião 10h, Almoço 12h, Relatórios 15h.')
-            elif funcoes == '3':
-                print('Saindo do sistema de funcionários...')
-                voltar = input('\nDeseja "trocar de usuario" ou "sair"?: ')
-                continue
-
-        elif tipo_usuario == 'Cliente':
-            empresa = usuarios['Cliente'][usuario]['empresa']
-            print(f'\nOlá {usuario}, da empresa {empresa}! Seja bem-vindo.')
-            ferramentas = input('1 - Acessar dados da empresa\n2 - Ver notícias\n3 - Sair do sistema\nEscolha uma opção: ')
-            if ferramentas == '1':
-                print(f'Aqui estão os dados da empresa {empresa}.')
-            elif ferramentas == '2':
-                print(f'Últimas notícias para clientes da empresa {empresa}.')
-            elif ferramentas == '3':
-                print('Saindo do sistema do cliente...')
-                voltar = input('\nDeseja "trocar de usuario" ou "sair"?: ')
-                continue
 
         voltar = input('\nDeseja "trocar de usuario", continuar as "operacoes" ou "sair"?: ')
         if voltar == 'sair':
             print('Sistema encerrado.')
-
-
-
