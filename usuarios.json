@@ -1,0 +1,30 @@
+{
+    "Lider": {
+        "Lider": {
+            "senha": "196292021tT"
+        }
+    },
+    "Admin": {
+        "Admin1": {
+            "senha": "00009"
+        },
+        "Admin2": {
+            "senha": " 19019"
+        }
+    },
+    "Cliente": {
+        "Cliente1": {
+            "senha": "99999",
+            "empresa": "Logos"
+        },
+        "Cliente2": {
+            "senha": "Cliente2001",
+            "empresa": "Sesi"
+        }
+    },
+    "Funcionario": {
+        "Funcionario1": {
+            "senha": "4241"
+        }
+    }
+}
