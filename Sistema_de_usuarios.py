@@ -27,7 +27,7 @@ while voltar != 'sair':
             break
 
         
-        tentativas = 3
+        tentativas = 9
         while tentativas > 0:
             senha = input('Para entrar informe sua senha: ')
             if usuarios[tipo_usuario][usuario]['senha'] == senha:
@@ -38,8 +38,8 @@ while voltar != 'sair':
                 tentativas -= 1
                 if tentativas > 0:
                     print(f'Senha incorreta. Você tem mais {tentativas} tentativa(s).')
-                    tentar = input('Deseja tentar novamente? (s/n): ').lower()
-                    if tentar != 's':
+                    tentar = input('Deseja tentar novamente? ("sim" ou "não"): ').lower()
+                    if tentar != 'sim':
                         print('Acesso cancelado.')
                         tentativas = 0
                         break
