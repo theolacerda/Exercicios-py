@@ -2,6 +2,7 @@ import json
 import os
 
 ARQUIVO_USUARIOS = "usuarios.json"
+ARQUIVO_PEDIDOS = "pedidos.json"
 
 def carregar_usuarios():
     if os.path.exists(ARQUIVO_USUARIOS):
@@ -19,10 +20,27 @@ def salvar_usuarios(usuarios):
     with open(ARQUIVO_USUARIOS, "w") as f:
         json.dump(usuarios, f, indent=4)
 
+def carregar_pedidos():
+    if os.path.exists(ARQUIVO_PEDIDOS):
+        with open(ARQUIVO_PEDIDOS, 'r') as f:
+            return json.load(f)
+    else:
+        return {
+            'pedidos_cliente': [],
+            'pedidos_admin': [],
+            'pedidos_gerais': []
+        }
+
+def salvar_pedidos(pedidos):
+    with open(ARQUIVO_PEDIDOS, 'w') as f:
+        json.dump(pedidos, f, indent=4)
+
 usuarios = carregar_usuarios()
 
-pedidos_cliente = []
-pedidos_admin = []
+pedidos = carregar_pedidos()
+pedidos_cliente = pedidos.get('pedidos_cliente', [])
+pedidos_admin = pedidos.get('pedidos_admin', [])
+pedidos_gerais = pedidos.get('pedidos_gerais', [])
 
 voltar = 'trocar de usuario'
 
@@ -46,13 +64,20 @@ while voltar != 'sair':
                     novo_nome = input('Informe seu nome Cliente: ')
                     nova_senha = input('Informe a senha desejada: ')
                     pedidos_cliente.append({'nome': novo_nome, 'senha': nova_senha})
+                    
+                    pedidos['pedidos_cliente'] = pedidos_cliente
+                    salvar_pedidos(pedidos)
                     print(f'Pedido de criação de cliente "{novo_nome}" enviado para aprovação do Líder.')
+                    
+                    continuar = input('Deseja tentar efetuar login agora? ("sim"/"nao"): ').lower()
+                    if continuar != 'sim':
+                        voltar = 'trocar de usuario'
+                        continue
                 else:
                     print('Por favor, entre em contato com o administrador do sistema para criar uma conta.')
-
             else:
                 print('Sistema encerrado.')
-            break
+                break
 
         tentativas = 9
         while tentativas > 0:
@@ -146,6 +171,9 @@ while voltar != 'sair':
                             usuarios['Cliente'][pedido['nome']] = {'senha': pedido['senha'], 'empresa': empresa}
                             print(f'Cliente "{pedido["nome"]}" aprovado e cadastrado com sucesso!')
                             salvar_usuarios(usuarios)
+                            
+                            pedidos['pedidos_cliente'] = pedidos_cliente
+                            salvar_pedidos(pedidos)
                         else:
                             print('Número de pedido inválido.')
 
@@ -163,8 +191,25 @@ while voltar != 'sair':
                             usuarios['Admin'][pedido['nome']] = {'senha': pedido['senha']}
                             print(f'Novo administrador "{pedido["nome"]}" aprovado e cadastrado com sucesso!')
                             salvar_usuarios(usuarios)
+                            pedidos['pedidos_admin'] = pedidos_admin
+                            salvar_pedidos(pedidos)
                         else:
                             print('Número de pedido inválido.')
+
+                if pedidos_gerais:
+                    print('\nPedidos gerais pendentes:')
+                    for i, p in enumerate(pedidos_gerais, 1):
+                        print(f'{i}. Tipo: {p.get("tipo","N/A")}, Nome: {p.get("nome","N/A")}, Info: {p.get("info","-")}')
+                    escolha = input('Deseja analisar/limpar algum pedido geral? (s/n): ').lower()
+                    if escolha == 's':
+                        indice = int(input('Número do pedido geral: ')) - 1
+                        if 0 <= indice < len(pedidos_gerais):
+                            pedido_geral = pedidos_gerais.pop(indice)
+                            print(f'Pedido geral {indice+1} removido.')
+                            pedidos['pedidos_gerais'] = pedidos_gerais
+                            salvar_pedidos(pedidos)
+                        else:
+                            print('Número inválido.')
 
             elif manutencao == '6':
                 print('Remover usuário do sistema:')
@@ -182,7 +227,52 @@ while voltar != 'sair':
 
             elif manutencao == '7':
                 print('Saindo do sistema administrativo...')
+                break
 
-        voltar = input('\nDeseja "trocar de usuario", continuar as "operacoes" ou "sair"?: ')
-        if voltar == 'sair':
-            print('Sistema encerrado.')
+    elif tipo_usuario == 'Admin':
+            print(f'\nOlá Administrador, seja bem-vindo ao sistema.')
+            manutencao = input(
+                '1 - Manutenção do sistema\n'
+                '2 - Ver usuários\n'
+                '3 - Cadastrar novos usuários\n'
+                '4 - Sair do sistema\n'
+                'Escolha uma opção: '
+            )
+
+            if manutencao == '1':
+                print('Manutenção do sistema selecionada.')
+
+            elif manutencao == '2':
+                print('Lista completa de usuários:')
+                for tipo, lista in usuarios.items():
+                    print(f'\n{tipo}s:')
+                    for nome, info in lista.items():
+                        if tipo == 'Cliente':
+                            empresa = info.get('empresa', 'N/A')
+                            print(f'  - {nome} (Empresa: {empresa})')
+                        else:
+                            print(f'  - {nome}')
+
+            elif manutencao == '3':
+                print('Cadastrar novo usuário:')
+                novo_tipo = input('Informe o tipo de usuário (Admin / Cliente / Funcionario): ').capitalize()
+                if novo_tipo not in usuarios:
+                    print('Tipo inválido!')
+                else:
+                    novo_nome = input(f'Informe o nome do novo {novo_tipo}: ')
+                    if novo_nome in usuarios[novo_tipo]:
+                        print(f'Usuário "{novo_nome}" já existe! Escolha outro nome.')
+                        continue
+                    nova_senha = input(f'Informe a senha do novo {novo_tipo}: ')
+                    if novo_tipo == 'Cliente':
+                        empresa = input('Informe o nome da empresa do cliente: ')
+                        usuarios[novo_tipo][novo_nome] = {'senha': nova_senha, 'empresa': empresa}
+                        print(f'Cliente "{novo_nome}" cadastrado com sucesso (Empresa: {empresa}).')
+                    else:
+                        usuarios[novo_tipo][novo_nome] = {'senha': nova_senha}
+                        print(f'{novo_tipo} "{novo_nome}" cadastrado com sucesso!')
+                    salvar_usuarios(usuarios)
+
+            elif manutencao == '4':
+                print('Saindo do sistema administrativo...')
+                break

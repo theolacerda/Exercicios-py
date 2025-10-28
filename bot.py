@@ -31,5 +31,6 @@ while voltar == 'sim':
 
     elif opcoes == '4':
         print('Obrigado por usar o bot! Até mais!')
+        break
     else:
         print('Opção inválida!')

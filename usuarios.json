@@ -20,6 +20,14 @@
         "Cliente2": {
             "senha": "Cliente2001",
             "empresa": "Sesi"
+        },
+        "Nicolas": {
+            "senha": "1220",
+            "empresa": "Sesi"
+        },
+        "Luis": {
+            "senha": "avai",
+            "empresa": "SugadoresDoSul"
         }
     },
     "Funcionario": {
